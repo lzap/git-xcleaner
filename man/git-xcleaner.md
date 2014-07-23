@@ -26,7 +26,7 @@ File bugs at https://github.com/lzap/git-xcleaner/issues
 
 ## AUTHOR
 
-Lukáš Zapletal and contributors (see README.md).
+Lukas Zapletal and contributors (see README.md).
 
 ## COPYRIGHT
 

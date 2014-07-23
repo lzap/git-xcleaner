@@ -154,7 +154,7 @@ while true; do
       exit 0
       ;;
     *)
-      whiptail --title "The git xcleaner - help" --textbox man/git-xcleaner.txt $HEIGHT $WIDTH
+      whiptail --title "The git xcleaner - help" --textbox /usr/share/doc/git-xcleaner/git-xcleaner.1.txt $HEIGHT $WIDTH
       ;;
   esac
 done

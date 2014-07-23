@@ -39,7 +39,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE README.md AUTHORS man/%{name}.1.txt
+%doc LICENSE README.md man/%{name}.1.txt
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
 
