@@ -1,0 +1,168 @@
+#!/bin/bash
+
+git status >/dev/null || exit 1
+
+eval `resize`
+BORDER=5
+WIDTH=$(( $COLUMNS - $BORDER))
+HEIGHT=$(( $LINES - $BORDER))
+WHEIGHT=$(( $LINES - $BORDER - 8))
+SMALL_HEIGHT=8
+
+delete_action_selection() {
+  # construct the checkbox command
+  CHECKBOX_CMD=""
+  for b in "${!STATE[@]}"; do
+    CHECKBOX_CMD+="$b ${STATE[$b]} "
+  done
+
+  # open the checkbox list
+  TO_BE_DELETED=()
+  for b in $(whiptail --title "The git xcleaner - branch selection" \
+    --separate-output --noitem \
+    --checklist  "Select branches to be deleted and be careful:" \
+    $HEIGHT $WIDTH $WHEIGHT $CHECKBOX_CMD 3>&1 1>&2 2>&3); do
+    TO_BE_DELETED+=($b)
+  done
+
+  CONFIRMED=0
+  if [ ${#TO_BE_DELETED[@]} -ne 0 ]; then
+    # explicitly confirm the action
+    if (whiptail --title "The git xcleaner - delete confirmation" \
+      --yesno "Are you sure to delete those?\n\nTHERE IS NO WAY BACK!" $SMALL_HEIGHT $WIDTH) then
+    CONFIRMED=1
+  fi
+fi
+}
+
+delete_action() {
+  if [ $CONFIRMED -eq 1 ]; then
+    PERCENT=$(( 100 / ${#TO_BE_DELETED[@]} ))
+    GAUGE=0
+    {
+      for b in "${TO_BE_DELETED[@]}"; do
+        eval $1 1>&2
+        echo $GAUGE
+        GAUGE=$(( $GAUGE + $PERCENT ))
+      done
+      echo 100
+      sleep 1
+    } | whiptail --title "The git xcleaner - working" \
+      --gauge "Deleting selected branches..." $SMALL_HEIGHT $WIDTH 0
+  fi
+}
+
+action_local() {
+  git branch -D $b &>/dev/null
+}
+
+action_remote() {
+  git push $REMOTE :${b/$REMOTE\//} &>/dev/null
+}
+
+while true; do
+
+  ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+  # hash with preselect state (0/1)
+  declare -A STATE; STATE=()
+
+  # load all branch names
+  for b in $(git branch | sed -E 's/^\*?\s*//'); do
+    STATE[$b]=0
+  done
+
+  ACTION=$(whiptail --title "The git xcleaner - main menu" --cancel-button "Help" --default-item "Exit" \
+    --menu "What do you want to do today?" $HEIGHT $WIDTH $WHEIGHT \
+      "Merged" "Delete merged branches" \
+      "Messages" "Delete branches with commit messages" \
+      "Remote" "Delete $USER upstream branches not present locally" \
+      "Upstream" "Delete branches without origin or $USER upstream" \
+      "Manual" "Interactive manual deletion" \
+      "Exit" "Return to shell" \
+      "Help" "Show help" \
+      3>&1 1>&2 2>&3)
+
+  case $ACTION in
+    Manual)
+      delete_action_selection
+      delete_action action_local
+      ;;
+
+    Merged)
+      # preselect merged branch names
+      for b in $(git branch --merged | sed -E 's/^\*?\s*//'); do
+        [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
+      done
+
+      delete_action_selection
+      delete_action action_local
+      ;;
+
+    Upstream)
+      # preselect branches without origin or $USER upstream
+      for b in $(git branch -vv | grep '\[.*\]' | grep -vE '\[(origin|lzap)/' | awk '{ print $1 }'); do
+        [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
+      done
+
+      delete_action_selection
+      delete_action action_local
+      ;;
+
+    Messages)
+      # checkout base branch
+      BASE=$(whiptail --title "The git xcleaner - branch to search" \
+        --inputbox "Base branch:" $HEIGHT $WIDTH master 3>&1 1>&2 2>&3)
+      git checkout $BASE &>/dev/null || exit 1
+
+      # search commit messages and preselect branches
+      for branch in "${!STATE[@]}"; do
+        last_commit_msg="$(git log --oneline --format=%f -1 $branch)"
+        if [[ "$(git log --oneline --format=%f | grep "$last_commit_msg" | wc -l)" -eq 1 ]]; then
+          [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
+        fi
+      done
+
+      delete_action_selection
+      delete_action action_local
+      ;;
+
+    Remote)
+      # determine remote name
+      REMOTE=$(whiptail --title "The git xcleaner - remote name" \
+        --inputbox "Remote name:" $HEIGHT $WIDTH $USER 3>&1 1>&2 2>&3)
+      git checkout $BASE || exit 1
+
+      # reloate branch names as remotes
+      declare -A STATE; STATE=()
+      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "$REMOTE/"); do
+        [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
+      done
+
+      # preselect those not present locally
+      for b in $(git branch | sed -E 's/^\*?\s*//'); do
+        if [ ${STATE["$REMOTE/$b"]+exists} ]; then
+          STATE["$REMOTE/$b"]=0
+        fi
+      done
+
+      delete_action_selection
+      delete_action action_remote
+      ;;
+
+    Exit)
+      exit 0
+      ;;
+    *)
+      HLPTMP=$(mktemp git-xcleaner-XXXXXX)
+      trap "rm -f $HLPTMP" EXIT
+      cat > $HLPTMP <<'EOH'
+The git xcleaner
+----------------
+
+Help is TBD. :)
+EOH
+      whiptail --title "The git xcleaner - help" --textbox $HLPTMP $HEIGHT $WIDTH
+      ;;
+  esac
+done
