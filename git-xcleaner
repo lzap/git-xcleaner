@@ -73,11 +73,11 @@ while true; do
   done
 
   ACTION=$(whiptail --title "The git xcleaner - main menu" --cancel-button "Help" --default-item "Exit" \
-    --menu "What do you want to do today?" $HEIGHT $WIDTH $WHEIGHT \
-      "Merged" "Delete merged branches" \
-      "Messages" "Delete branches with commit messages" \
-      "Remote" "Delete $USER upstream branches not present locally" \
-      "Upstream" "Delete branches without origin or $USER upstream" \
+      --menu "What do you want to do today?" $HEIGHT $WIDTH $WHEIGHT \
+      "Merged" "Delete merged branches (--merged)" \
+      "Messages" "Delete (rebased) branches with the same commit messages" \
+      "Remote" "Delete $USER/* upstream branches not present locally" \
+      "Upstream" "Delete branches without origin/ or $USER/ upstream counterparts" \
       "Manual" "Interactive manual deletion" \
       "Exit" "Return to shell" \
       "Help" "Show help" \
