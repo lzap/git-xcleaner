@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        1.0
+Version:        1.1
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -44,6 +44,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1*
 
 %changelog
+* Wed Jul 23 2014 Lukas Zapletal <lzap+git@redhat.com> 1.1-1
+- new package built with tito
+
 * Wed Jul 23 2014 Lukas Zapletal <lzap+rpm@redhat.com> 1.0-1
 - Initial version
 
