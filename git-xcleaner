@@ -154,15 +154,7 @@ while true; do
       exit 0
       ;;
     *)
-      HLPTMP=$(mktemp git-xcleaner-XXXXXX)
-      trap "rm -f $HLPTMP" EXIT
-      cat > $HLPTMP <<'EOH'
-The git xcleaner
-----------------
-
-Help is TBD. :)
-EOH
-      whiptail --title "The git xcleaner - help" --textbox $HLPTMP $HEIGHT $WIDTH
+      whiptail --title "The git xcleaner - help" --textbox man/git-xcleaner.txt $HEIGHT $WIDTH
       ;;
   esac
 done

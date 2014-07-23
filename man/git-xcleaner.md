@@ -1,5 +1,5 @@
-git-xcleaner(1) -- interactive git branch deletion
-==================================================
+git-xcleaner(1) -- interactive git branch removal
+=================================================
 
 ## SYNOPSIS
 
@@ -30,7 +30,7 @@ Lukáš Zapletal and contributors (see README.md).
 
 ## COPYRIGHT
 
-(c) 2014 Lukáš Zapletal
+(c) 2014 Lukas Zapletal
 
 ## SEE ALSO
 

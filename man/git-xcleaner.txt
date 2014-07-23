@@ -1,0 +1,38 @@
+GIT-XCLEANER(1)                                                GIT-XCLEANER(1)
+
+
+
+[1mNAME[0m
+       [1mgit-xcleaner [22m- interactive git branch deletion
+
+[1mSYNOPSIS[0m
+       [1mgit xcleaner[0m
+
+[1mDESCRIPTION[0m
+       This  tool  helps  with  deleting unused topic branches using TUI (text
+       user interface). It also offers mechanisms for  pre-selecting  branches
+       that can be safely removed.
+
+[1mWARNING[0m
+       This tool deletes git branches after confirmation. There is no way back
+       when git garbage is collected. Double  check  what  you  are  about  to
+       remove!
+
+[1mRETURN VALUES[0m
+       Zero on success, one on errors when manipulating with git.
+
+[1mBUGS[0m
+       File bugs at https://github.com/lzap/git-xcleaner/issues
+
+[1mAUTHOR[0m
+       Luk~A,ioA,i Zapletal and contributors (see README.md).
+
+[1mCOPYRIGHT[0m
+       (c) 2014 Luk~A,ioA,i Zapletal
+
+[1mSEE ALSO[0m
+       git-branch(1)
+
+
+
+                                   July 2014                   GIT-XCLEANER(1)
