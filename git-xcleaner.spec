@@ -7,7 +7,7 @@ Summary:        Interactive git branch removal TUI
 Group:          Applications/Productivity
 License:        GPLv2
 URL:            https://github.com/lzap/git-xcleaner
-Source:         %{name}-%{version}.tar.gz
+Source:         http://lzap.fedorapeople.org/projects/git-xcleaner/%{name}-%{version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -26,6 +26,7 @@ safely removed.
 
 %build
 ronn man/%{name}.md
+# ANSII-only text version of the man page for the embedded help
 ronn -m man/%{name}.md | sed -r 's/\x1b\[[0-9;]*m?//g' > man/%{name}.1.txt
 
 %install
