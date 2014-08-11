@@ -7,7 +7,7 @@ Summary:        Interactive git branch removal TUI
 Group:          Applications/Productivity
 License:        GPLv2
 URL:            https://github.com/lzap/git-xcleaner
-Source:         http://lzap.fedorapeople.org/projects/git-xcleaner/%{name}-%{version}.tar.gz
+Source:         http://lzap.fedorapeople.org/projects/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
