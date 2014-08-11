@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        1.2
+Version:        1.3
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -45,6 +45,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1*
 
 %changelog
+* Mon Aug 11 2014 Lukas Zapletal <lzap+git@redhat.com> 1.3-1
+- Added dependency check during start (lzap+git@redhat.com)
+- Cleaned source URL in SPEC (lzap+git@redhat.com)
+
 * Thu Jul 24 2014 Lukas Zapletal <lzap+git@redhat.com> 1.2-1
 - Reworded the welcome screen and URL change (lzap+git@redhat.com)
 
