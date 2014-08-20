@@ -14,6 +14,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
 BuildRequires:  rubygem-ronn sed
+Requires:       /usr/bin/resize
 Requires:       newt
 
 %description
