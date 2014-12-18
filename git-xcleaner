@@ -14,7 +14,7 @@ SMALL_HEIGHT=8
 delete_action_selection() {
   # construct the checkbox command
   CHECKBOX_CMD=""
-  for b in "${!STATE[@]}"; do
+  for b in $BRANCH_LIST; do
     CHECKBOX_CMD+="$b ${STATE[$b]} "
   done
 
@@ -67,10 +67,11 @@ while true; do
   ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
   # hash with preselect state (0/1)
+  BRANCH_LIST=$(git branch | sed -E 's/^\*?\s*//' | sort)
   declare -A STATE; STATE=()
 
   # load all branch names
-  for b in $(git branch | sed -E 's/^\*?\s*//'); do
+  for b in $BRANCH_LIST; do
     STATE[$b]=0
   done
 
@@ -80,6 +81,7 @@ while true; do
       "Messages" "Delete (rebased) branches with the same commit messages" \
       "Remote" "Delete $USER/* upstream branches not present locally" \
       "Upstream" "Delete branches without origin/ or $USER/ upstream counterparts" \
+      "Prune" "Delete stale remote-tracking branches" \
       "Manual" "Interactive manual deletion" \
       "Exit" "Return to shell" \
       "Help" "Show help" \
@@ -93,7 +95,7 @@ while true; do
 
     Merged)
       # preselect merged branch names
-      for b in $(git branch --merged | sed -E 's/^\*?\s*//'); do
+      for b in $(git branch --merged | sed -E 's/^\*?\s*//' | sort); do
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       done
 
@@ -103,7 +105,7 @@ while true; do
 
     Upstream)
       # preselect branches without origin or $USER upstream
-      for b in $(git branch -vv | grep '\[.*\]' | grep -vE '\[(origin|lzap)/' | awk '{ print $1 }'); do
+      for b in $(git branch -vv | grep '\[.*\]' | grep -vE '\[(origin|lzap)/' | awk '{ print $1 }' | sort); do
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       done
 
@@ -137,12 +139,12 @@ while true; do
 
       # reloate branch names as remotes
       declare -A STATE; STATE=()
-      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "$REMOTE/"); do
+      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "$REMOTE/" | sort); do
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       done
 
       # preselect those not present locally
-      for b in $(git branch | sed -E 's/^\*?\s*//'); do
+      for b in $(git branch | sed -E 's/^\*?\s*//' | sort); do
         if [ ${STATE["$REMOTE/$b"]+exists} ]; then
           STATE["$REMOTE/$b"]=0
         fi
@@ -156,7 +158,12 @@ while true; do
       exit 0
       ;;
     *)
-      whiptail --title "The git xcleaner - help" --textbox /usr/share/doc/git-xcleaner/git-xcleaner.1.txt $HEIGHT $WIDTH
+      HELP_TEXT=/usr/share/doc/git-xcleaner/git-xcleaner.1.txt
+      if [ -f $HELP_TEXT ]; then
+        whiptail --title "The git xcleaner - help" --textbox $HELP_TEXT $HEIGHT $WIDTH
+      else
+        whiptail --title "The git xcleaner - help" --infobox "Help not available - use packaged version" $HEIGHT $WIDTH
+      fi
       ;;
   esac
 done
