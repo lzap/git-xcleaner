@@ -57,11 +57,11 @@ delete_action() {
 }
 
 action_local() {
-  git branch -D $b &>/dev/null
+  git branch -D $b &>>$HOME/.git-xcleaner.log
 }
 
 action_remote() {
-  git push $REMOTE :${b/$REMOTE\//} &>/dev/null
+  git push $REMOTE :${b/$REMOTE\//} &>>$HOME/.git-xcleaner.log
 }
 
 while true; do
