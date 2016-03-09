@@ -9,6 +9,7 @@ BORDER=5
 WIDTH=$(( $COLUMNS - $BORDER))
 HEIGHT=$(( $LINES - $BORDER))
 WHEIGHT=$(( $LINES - $BORDER - 8))
+WIDTH_MENU=78
 HEIGHT_MENU=18
 WHEIGHT_MENU=$(( $HEIGHT_MENU - 8))
 SMALL_HEIGHT=8
@@ -78,7 +79,7 @@ while true; do
   done
 
   ACTION=$(whiptail --title "The git xcleaner - main menu" --cancel-button "Help" --default-item "Exit" \
-      --menu "Select action. This is safe, review on the next screen." $HEIGHT_MENU $WIDTH $WHEIGHT_MENU \
+      --menu "Select action. This is safe, review on the next screen." $HEIGHT_MENU $WIDTH_MENU $WHEIGHT_MENU \
       "Merged" "Delete merged branches (--merged)" \
       "Messages" "Delete (rebased) branches with the same commit messages" \
       "Remote" "Delete $USER/* upstream branches not present locally" \
