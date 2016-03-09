@@ -13,8 +13,9 @@ at https://github.com/lzap/git-xcleaner
 Requirements
 ------------
 
-* Bash
-* newt
+* bash
+* whiptail
+* resize
 
 Usage
 -----
