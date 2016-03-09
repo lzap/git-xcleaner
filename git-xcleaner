@@ -12,13 +12,14 @@ WHEIGHT=$(( $LINES - $BORDER - 8))
 WIDTH_MENU=78
 HEIGHT_MENU=18
 WHEIGHT_MENU=$(( $HEIGHT_MENU - 8))
+SMALL_WIDTH=60
 SMALL_HEIGHT=8
 
 delete_action_selection() {
   # construct the checkbox command
   CHECKBOX_CMD=""
   for b in $BRANCH_LIST; do
-    CHECKBOX_CMD+="$b ${STATE[$b]} "
+    CHECKBOX_CMD+="$b $b "
   done
 
   # open the checkbox list
@@ -34,7 +35,7 @@ delete_action_selection() {
   if [ ${#TO_BE_DELETED[@]} -ne 0 ]; then
     # explicitly confirm the action
     if (whiptail --title "The git xcleaner - delete confirmation" \
-      --yesno "Are you sure to delete those?\n\nTHERE IS NO WAY BACK!" $SMALL_HEIGHT $WIDTH) then
+      --yesno "Are you sure to delete selected branches (${#TO_BE_DELETED[@]})?" $SMALL_HEIGHT $SMALL_WIDTH) then
     CONFIRMED=1
   fi
 fi
@@ -51,7 +52,6 @@ delete_action() {
         GAUGE=$(( $GAUGE + $PERCENT ))
       done
       echo 100
-      sleep 1
     } | whiptail --title "The git xcleaner - working" \
       --gauge "Deleting selected branches..." $SMALL_HEIGHT $WIDTH 0
   fi
@@ -144,7 +144,7 @@ while true; do
         --inputbox "Remote name:" $HEIGHT $WIDTH $USER 3>&1 1>&2 2>&3)
       git checkout $BASE || exit 1
 
-      # reloate branch names as remotes
+      # relocate branch names as remotes
       declare -A STATE; STATE=()
       for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "$REMOTE/" | sort); do
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
