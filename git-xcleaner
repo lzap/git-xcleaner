@@ -94,9 +94,13 @@ while true; do
       ;;
 
     Merged)
+      # checkout base branch
+      BASE=$(whiptail --title "The git xcleaner - branch to search" \
+        --inputbox "Base branch:" $HEIGHT $WIDTH master 3>&1 1>&2 2>&3)
+
       # preselect merged branch names
-      for b in $(git branch --merged | sed -E 's/^\*?\s*//' | sort); do
-        [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
+      for b in $(git branch --merged $BASE | sed -E 's/^\*?\s*//' | sort); do
+        [ "x$b" != "x$BASE" ] && STATE[$b]=1
       done
 
       delete_action_selection
