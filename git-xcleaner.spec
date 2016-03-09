@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        1.3
+Version:        1.4
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -46,6 +46,18 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1*
 
 %changelog
+* Wed Mar 09 2016 Lukas Zapletal <lzap+git@redhat.com> 1.4-1
+- Improved confirmation message (lzap+git@redhat.com)
+- Menu width is also fixed now (lzap+git@redhat.com)
+- Added undelete instructions (lzap+git@redhat.com)
+- Updated dependencies in README (lzap+git@redhat.com)
+- Main menu is now smaller (lzap+git@redhat.com)
+- Merged mode works with any base branch (lzap+git@redhat.com)
+- Most of the lists are sorted by branch name now (lzap+git@redhat.com)
+- Fix branch variables in message search mode (dcleal@redhat.com)
+- Check for resize/xterm dependency (dcleal@redhat.com)
+- Add missing require on resize/xterm (dcleal@redhat.com)
+
 * Mon Aug 11 2014 Lukas Zapletal <lzap+git@redhat.com> 1.3-1
 - Added dependency check during start (lzap+git@redhat.com)
 - Cleaned source URL in SPEC (lzap+git@redhat.com)
