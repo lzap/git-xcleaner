@@ -13,7 +13,10 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
 
-BuildRequires:  rubygem-ronn sed
+BuildRequires:  sed
+%if 0%{?fedora} >= 22
+BuildRequires:  rubygem-ronn
+%endif
 Requires:       /usr/bin/resize
 Requires:       newt
 
@@ -26,15 +29,21 @@ safely removed.
 %setup -q -n %{name}-%{version}
 
 %build
-ronn man/%{name}.md
-# ANSII-only text version of the man page for the embedded help
-ronn -m man/%{name}.md | sed -r 's/\x1b\[[0-9;]*m?//g' > man/%{name}.1.txt
+# Man page and ANSII-only text version of the man page for the embedded help
+%if 0%{?fedora} >= 22
+  ronn man/%{name}.md
+  ronn -m man/%{name}.md | sed -r 's/\x1b\[[0-9;]*m?//g' > man/%{name}.1.txt
+%else
+  cp man/%{name}.md man/%{name}.1.txt
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 install -Dp %{name} $RPM_BUILD_ROOT%{_bindir}/%{name}
-install -Dpm 644 man/%{name}.1 $RPM_BUILD_ROOT%{_mandir}/man1/%{name}.1
+%if 0%{?fedora} >= 22
+  install -Dpm 644 man/%{name}.1 $RPM_BUILD_ROOT%{_mandir}/man1/%{name}.1
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -43,7 +52,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc LICENSE README.md man/%{name}.1.txt
 %{_bindir}/%{name}
+%if 0%{?fedora} >= 22
 %{_mandir}/man1/%{name}.1*
+%endif
 
 %changelog
 * Wed Mar 09 2016 Lukas Zapletal <lzap+git@redhat.com> 1.4-1

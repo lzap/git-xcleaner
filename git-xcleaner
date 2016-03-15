@@ -19,7 +19,8 @@ delete_action_selection() {
   # construct the checkbox command
   CHECKBOX_CMD=""
   for b in $BRANCH_LIST; do
-    CHECKBOX_CMD+="$b $b "
+    [[ -z "${STATE[$b]}" ]] && STATE[$b]=0
+    CHECKBOX_CMD+="$b ${STATE[$b]} "
   done
 
   # open the checkbox list
@@ -84,11 +85,11 @@ while true; do
       "Messages" "Delete (rebased) branches with the same commit messages" \
       "Remote" "Delete $USER/* upstream branches not present locally" \
       "Upstream" "Delete branches without origin/ or $USER/ upstream counterparts" \
-      "Prune" "Delete stale remote-tracking branches" \
       "Manual" "Interactive manual deletion" \
       "Exit" "Return to shell" \
       "Help" "Show help" \
       3>&1 1>&2 2>&3)
+      #"Prune" "Delete stale remote-tracking branches" \
 
   case $ACTION in
     Manual)
@@ -146,7 +147,8 @@ while true; do
 
       # relocate branch names as remotes
       declare -A STATE; STATE=()
-      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "$REMOTE/" | sort); do
+      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "^$REMOTE/" | sed "s/^$REMOTE\\///" | sort); do
+        echo $b
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       done
 
