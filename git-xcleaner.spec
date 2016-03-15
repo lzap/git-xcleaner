@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        1.4
+Version:        1.5
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -57,6 +57,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Mar 15 2016 Lukas Zapletal <lzap+git@redhat.com> 1.5-1
+- Updated man page (lzap+git@redhat.com)
+- Fixed bugs (lzap+git@redhat.com)
+
 * Wed Mar 09 2016 Lukas Zapletal <lzap+git@redhat.com> 1.4-1
 - Improved confirmation message (lzap+git@redhat.com)
 - Menu width is also fixed now (lzap+git@redhat.com)
