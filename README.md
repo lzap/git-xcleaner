@@ -32,6 +32,15 @@ mis-deleted branches:
 If you want to do this, do it *prior* running cleaning, so you are still able
 to recover after few weeks.
 
+Installation
+------------
+
+On Fedora do `yum install git-xcleaner`, on other distros do this:
+
+    TARGET=/usr/local/bin/git-xcleaner
+    curl https://raw.githubusercontent.com/lzap/git-xcleaner/master/git-xcleaner > $TARGET
+    chmod +x $TARGET
+
 Documentation
 -------------
 
