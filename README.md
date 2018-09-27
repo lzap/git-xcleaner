@@ -66,7 +66,7 @@ restore the branch with:
 Authors
 -------
 
-* Lukáš Zapletal
+* Lukáš Zapletal (lzap_at_redhat_dot_com)
 
 License
 -------
