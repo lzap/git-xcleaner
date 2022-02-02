@@ -32,6 +32,10 @@ mis-deleted branches:
 If you want to do this, do it *prior* running cleaning, so you are still able
 to recover after few weeks.
 
+Also, it is a good idea to prune branches prior cleaning:
+
+    $ git fetch --prune
+
 Installation
 ------------
 

@@ -81,8 +81,8 @@ while true; do
       --menu "Select action. This is safe, review on the next screen." $HEIGHT_MENU $WIDTH_MENU $WHEIGHT_MENU \
       "Merged" "Delete merged branches (--merged)" \
       "Messages" "Delete (rebased) branches with the same commit messages" \
+      "Pruned" "Delete pruned branches (deleted tracking branches)" \
       "Remote" "Delete $USER/* upstream branches not present locally" \
-      "Upstream" "Delete branches without origin/ or $USER/ upstream counterparts" \
       "Manual" "Interactive manual deletion" \
       "Exit" "Return to shell" \
       "Help" "Show help" \
@@ -109,9 +109,9 @@ while true; do
       delete_action action_local
       ;;
 
-    Upstream)
-      # preselect branches without origin or $USER upstream
-      for b in $(git branch -vv | grep '\[.*\]' | grep -vE '\[(origin|lzap)/' | awk '{ print $1 }' | sort); do
+    Pruned)
+      # preselect pruned branches (must do git fetch --prune prior this)
+      for b in $(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{ print $1 }' | sort); do
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       done
 
