@@ -81,7 +81,6 @@ while true; do
 	  "Merged" "Delete merged branches (--merged)" \
 	  "Messages" "Delete (rebased) branches with the same commit messages" \
 	  "Pruned" "Delete pruned branches (deleted tracking branches)" \
-	  "Remote" "Delete $USER/* upstream branches not present locally" \
 	  "Manual" "Interactive manual deletion" \
 	  "Exit" "Return to shell" \
 	  "Help" "Show help" \
@@ -134,30 +133,6 @@ Messages)
 
       delete_action_selection
       delete_action action_local
-      ;;
-
-Remote)
-	# determine remote name
-	REMOTE=$(whiptail --title "The git xcleaner - remote name" \
-		--inputbox "Remote name:" $HEIGHT $WIDTH $USER 3>&1 1>&2 2>&3)
-			git checkout $BASE || exit 1
-
-      # relocate branch names as remotes
-      declare -A STATE; STATE=()
-      for b in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep "^$REMOTE/" | sed "s/^$REMOTE\\///" | sort); do
-	      echo $b
-	      [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
-      done
-
-      # preselect those not present locally
-      for b in $(git branch | sed -E 's/^\*?\s*//' | sort); do
-	      if [ ${STATE["$REMOTE/$b"]+exists} ]; then
-		      STATE["$REMOTE/$b"]=0
-	      fi
-      done
-
-      delete_action_selection
-      delete_action action_remote
       ;;
 
 Exit)
