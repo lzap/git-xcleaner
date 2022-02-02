@@ -1,10 +1,8 @@
 #!/bin/bash
 
 git status >/dev/null || (echo "The current directory does not seem to be valid git repo" && exit 1)
-type resize &>/dev/null || (echo "Missing 'resize' dependency" && exit 1)
 type whiptail &>/dev/null || (echo "Missing 'whiptail' dependency" && exit 1)
 
-eval `resize`
 BORDER=5
 WIDTH=$(( $COLUMNS - $BORDER))
 HEIGHT=$(( $LINES - $BORDER))
