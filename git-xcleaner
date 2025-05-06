@@ -3,15 +3,20 @@
 git status >/dev/null || (echo "The current directory does not seem to be valid git repo" && exit 1)
 type whiptail &>/dev/null || (echo "Missing 'whiptail' dependency" && exit 1)
 
+DEFBRANCH=main
 BORDER=5
-WIDTH=$(($COLUMNS - $BORDER))
-HEIGHT=$(($LINES - $BORDER))
-WHEIGHT=$(($LINES - $BORDER - 8))
+WIDTH=$((COLUMNS - BORDER))
+HEIGHT=$((LINES - BORDER))
+WHEIGHT=$((LINES - BORDER - 8))
 WIDTH_MENU=78
 HEIGHT_MENU=18
-WHEIGHT_MENU=$(($HEIGHT_MENU - 8))
+WHEIGHT_MENU=$((HEIGHT_MENU - 8))
 SMALL_WIDTH=60
 SMALL_HEIGHT=8
+
+if git show-ref --quiet refs/heads/master; then
+  DEFBRANCH=master
+fi
 
 delete_action_selection() {
   # construct the checkbox command
@@ -48,7 +53,7 @@ delete_action() {
       for b in "${TO_BE_DELETED[@]}"; do
         eval $1 1>&2
         echo $GAUGE
-        GAUGE=$(($GAUGE + $PERCENT))
+        GAUGE=$((GAUGE + PERCENT))
       done
       echo 100
     } | whiptail --title "The git xcleaner - working" \
@@ -57,11 +62,11 @@ delete_action() {
 }
 
 action_local() {
-  git branch -D $b &>>$HOME/.git-xcleaner.log
+  git branch -D $b &>>"$HOME/.git-xcleaner.log"
 }
 
 action_remote() {
-  git push $REMOTE :${b/$REMOTE\//} &>>$HOME/.git-xcleaner.log
+  git push $REMOTE :${b/$REMOTE\//} &>>"$HOME/.git-xcleaner.log"
 }
 
 while true; do
@@ -98,10 +103,10 @@ while true; do
   Merged)
     # checkout base branch
     BASE=$(whiptail --title "The git xcleaner - branch to search" \
-      --inputbox "Base branch:" $HEIGHT $WIDTH master 3>&1 1>&2 2>&3)
+      --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
 
     # preselect merged branch names
-    for b in $(git branch --merged $BASE | sed -E 's/^\*?\s*//' | sort); do
+    for b in $(git branch --merged "$BASE" | sed -E 's/^\*?\s*//' | sort); do
       [ "x$b" != "x$BASE" ] && STATE[$b]=1
     done
 
@@ -122,13 +127,13 @@ while true; do
   Messages)
     # checkout base branch
     BASE=$(whiptail --title "The git xcleaner - branch to search" \
-      --inputbox "Base branch:" $HEIGHT $WIDTH master 3>&1 1>&2 2>&3)
-    git checkout $BASE &>/dev/null || exit 1
+      --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
+    git checkout "$BASE" &>/dev/null || exit 1
 
     # search commit messages and preselect branches
     for b in "${!STATE[@]}"; do
       last_commit_msg="$(git log --oneline --format=%f -1 $b)"
-      if [[ "$(git log --oneline --format=%f | grep "$last_commit_msg" | wc -l)" -eq 1 ]]; then
+      if [[ "$(git log --oneline --format=%f | grep -c "$last_commit_msg")" -eq 1 ]]; then
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       fi
     done
