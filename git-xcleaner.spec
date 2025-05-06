@@ -58,12 +58,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Tue May 06 2025 Lukas Zapletal 2.2-1
-- 
+- Technical release
 
 * Tue May 06 2025 Lukas Zapletal 2.1-1
 - Renamed default branch from master to main
 - Reformatted shell code
 - Fixed release script
+
 * Tue May 06 2025 Lukas Zapletal 1.9-1
 - Change default branch to mail (lzap+git@redhat.com)
 - Reformat code with shfmt (lzap+git@redhat.com)

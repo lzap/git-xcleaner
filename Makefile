@@ -3,10 +3,12 @@
 fmt:
 	shfmt -w git-xcleaner
 
-.PHONY: build
-build:
-	tito build --tgz
+.PHONY: tag
+tag:
+	tito tag
 
 .PHONY: release
 release:
-	scp -i $HOME/.ssh/fedorapeople_rsa *.tar.gz lzap@fedorapeople.org:public_html/projects/git-xcleaner/
+	tito build --tgz
+	scp -i $HOME/.ssh/fedorapeople_rsa /tmp/tito/git-xcleaner-*.tar.gz lzap@fedorapeople.org:public_html/projects/git-xcleaner/
+	rm -rf /tmp/tito
