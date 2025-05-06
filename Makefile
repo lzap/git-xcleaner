@@ -4,7 +4,7 @@ fmt:
 
 .PHONY: release
 release:
-	echo "Make sure git tag git-xcleaner-X.Y exists."
+	echo "Make sure git tag X.Y exists."
 
 .PHONY: sources
 sources:
