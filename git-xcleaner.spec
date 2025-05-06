@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        2.1
+Version:        2.2
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -57,6 +57,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue May 06 2025 Lukas Zapletal 2.2-1
+- 
+
 * Tue May 06 2025 Lukas Zapletal 2.1-1
 - Renamed default branch from master to main
 - Reformatted shell code
