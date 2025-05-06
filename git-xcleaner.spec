@@ -1,5 +1,5 @@
 Name:           git-xcleaner
-Version:        1.5
+Version:        1.9
 Release:        1%{?dist}
 
 Summary:        Interactive git branch removal TUI
@@ -57,6 +57,46 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue May 06 2025 Lukas Zapletal 1.9-1
+- Change default branch to mail (lzap+git@redhat.com)
+- Reformat code with shfmt (lzap+git@redhat.com)
+- Drop Remote option - was not working correctly, sorry (lzap+git@redhat.com)
+- Reformat with tabs, yeah I know (lzap+git@redhat.com)
+- Implement pruned cleaning properly (lzap+git@redhat.com)
+- Remove unnecessary resize call (lzap+git@redhat.com)
+- Added email (lzap+git@redhat.com)
+- Added install section (lzap+git@redhat.com)
+
+* Tue May 06 2025 Lukas Zapletal <lzap+git@redhat.com>
+- Change default branch to mail (lzap+git@redhat.com)
+- Reformat code with shfmt (lzap+git@redhat.com)
+- Drop Remote option - was not working correctly, sorry (lzap+git@redhat.com)
+- Reformat with tabs, yeah I know (lzap+git@redhat.com)
+- Implement pruned cleaning properly (lzap+git@redhat.com)
+- Remove unnecessary resize call (lzap+git@redhat.com)
+- Added email (lzap+git@redhat.com)
+- Added install section (lzap+git@redhat.com)
+
+* Tue May 06 2025 Lukas Zapletal <lzap+git@redhat.com>
+- Change default branch to mail (lzap+git@redhat.com)
+- Reformat code with shfmt (lzap+git@redhat.com)
+- Drop Remote option - was not working correctly, sorry (lzap+git@redhat.com)
+- Reformat with tabs, yeah I know (lzap+git@redhat.com)
+- Implement pruned cleaning properly (lzap+git@redhat.com)
+- Remove unnecessary resize call (lzap+git@redhat.com)
+- Added email (lzap+git@redhat.com)
+- Added install section (lzap+git@redhat.com)
+
+* Tue May 06 2025 Lukas Zapletal <lzap+git@redhat.com>
+- Change default branch to mail (lzap+git@redhat.com)
+- Reformat code with shfmt (lzap+git@redhat.com)
+- Drop Remote option - was not working correctly, sorry (lzap+git@redhat.com)
+- Reformat with tabs, yeah I know (lzap+git@redhat.com)
+- Implement pruned cleaning properly (lzap+git@redhat.com)
+- Remove unnecessary resize call (lzap+git@redhat.com)
+- Added email (lzap+git@redhat.com)
+- Added install section (lzap+git@redhat.com)
+
 * Tue Mar 15 2016 Lukas Zapletal <lzap+git@redhat.com> 1.5-1
 - Updated man page (lzap+git@redhat.com)
 - Fixed bugs (lzap+git@redhat.com)
