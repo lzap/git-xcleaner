@@ -1,14 +1,11 @@
-
 .PHONY: fmt
 fmt:
 	shfmt -w git-xcleaner
 
-.PHONY: tag
-tag:
-	tito tag
-
 .PHONY: release
 release:
-	tito build --tgz
-	scp -i $HOME/.ssh/fedorapeople_rsa /tmp/tito/git-xcleaner-*.tar.gz lzap@fedorapeople.org:public_html/projects/git-xcleaner/
-	rm -rf /tmp/tito
+	echo "Make sure git tag git-xcleaner-X.Y exists."
+
+.PHONY: sources
+sources:
+	curl -L -O https://github.com/lzap/git-xcleaner/archive/refs/tags/$(shell git describe --tags --abbrev=0).tar.gz
