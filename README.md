@@ -70,17 +70,9 @@ restore the branch with:
 Authors
 -------
 
-* Lukáš Zapletal (lzap_at_redhat_dot_com)
+* Lukáš Zapletal (`lzap_at_redhat_dot_com`)
 
 License
 -------
 
 GNU GPL v2. See the LICENSE file.
-
-TODO
-----
-
-* Fedora package
-* show some details for each branch (sha, last commit message)
-* fuzzy comparison of commit messages
-
