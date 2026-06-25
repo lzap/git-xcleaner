@@ -29,24 +29,16 @@ for deletion.
 
 **Messages**
 
-For each branch, tip commit message is compared against base history and if
-found, the branch is marked for deletion. Whole commit message is compared and
-it must fully match.
+For each branch, the tip commit subject is compared against the base branch
+history. The subject must fully match exactly one commit on the base branch
+for the branch to be marked for deletion.
 
 User enters base branch name (defaults to "master").
 
-**Remote**
+**Pruned**
 
-Delete all remote branches in remote repo which are not present locally.
-
-User enters remote name (defaults to current username).
-
-**Upstream**
-
-All branches which no longer exist in origin or specific remote repository are
-marked for deletion.
-
-User enters specific remote name (defaults to current username).
+Branches whose upstream tracking branch no longer exists (shown as [gone])
+are marked for deletion. Run git fetch --prune before using this action.
 
 **Manual**
 

@@ -69,10 +69,6 @@ action_local() {
   git branch -D "$b" &>>"$HOME/.git-xcleaner.log"
 }
 
-action_remote() {
-  git push $REMOTE :${b/$REMOTE\//} &>>"$HOME/.git-xcleaner.log"
-}
-
 while true; do
 
   ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
