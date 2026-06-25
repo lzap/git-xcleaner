@@ -5,6 +5,8 @@ type whiptail &>/dev/null || (echo "Missing 'whiptail' dependency" && exit 1)
 
 DEFBRANCH=main
 BORDER=5
+: "${COLUMNS:=80}"
+: "${LINES:=24}"
 WIDTH=$((COLUMNS - BORDER))
 HEIGHT=$((LINES - BORDER))
 WHEIGHT=$((LINES - BORDER - 8))
