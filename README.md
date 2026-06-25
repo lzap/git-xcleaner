@@ -49,6 +49,14 @@ On Fedora do `yum install git-xcleaner`, on other distros do this:
     curl https://raw.githubusercontent.com/lzap/git-xcleaner/master/git-xcleaner > $TARGET
     chmod +x $TARGET
 
+Testing
+-------
+
+    make test
+
+Runs `test.sh`, which creates a temporary repository under `/tmp/` and
+exercises all cleanup code paths with a mocked whiptail UI.
+
 Documentation
 -------------
 

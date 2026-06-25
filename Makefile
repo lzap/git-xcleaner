@@ -1,6 +1,9 @@
-.PHONY: fmt
+.PHONY: fmt test
 fmt:
-	shfmt -w git-xcleaner
+	shfmt -w git-xcleaner test.sh
+
+test:
+	./test.sh
 
 .PHONY: release
 release:

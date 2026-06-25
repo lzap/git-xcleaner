@@ -1,0 +1,20 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y whiptail
+
+      - name: Run integration tests
+        run: make test
+
+      - name: Verify entrypoint syntax
+        run: bash -n git-xcleaner test.sh

@@ -1,7 +1,8 @@
 #!/bin/bash
 # vim: ts=2:sw=2:et
-git status >/dev/null || (echo "The current directory does not seem to be valid git repo" && exit 1)
-type whiptail &>/dev/null || (echo "Missing 'whiptail' dependency" && exit 1)
+# shellcheck shell=bash
+
+GIT_XCLEANER_LOG="${GIT_XCLEANER_LOG:-$HOME/.git-xcleaner.log}"
 
 DEFBRANCH=main
 BORDER=5
@@ -16,152 +17,225 @@ WHEIGHT_MENU=$((HEIGHT_MENU - 8))
 SMALL_WIDTH=60
 SMALL_HEIGHT=8
 
-if git show-ref --quiet refs/heads/master; then
-  DEFBRANCH=master
-fi
+ACTIVE_BRANCH=
+declare -a BRANCH_LIST=()
+declare -A STATE=()
+TO_BE_DELETED=()
+CONFIRMED=0
+
+ui_menu() {
+  whiptail --title "The git xcleaner - main menu" --cancel-button "Help" --default-item "Exit" \
+    --menu "Select action. This is safe, review on the next screen." "$HEIGHT_MENU" "$WIDTH_MENU" "$WHEIGHT_MENU" "$@" \
+    3>&1 1>&2 2>&3
+}
+
+ui_inputbox() {
+  local prompt=$1 default=$2
+  whiptail --title "The git xcleaner - branch to search" \
+    --inputbox "$prompt" "$HEIGHT" "$WIDTH" "$default" 3>&1 1>&2 2>&3
+}
+
+ui_checklist() {
+  whiptail --title "The git xcleaner - branch selection" \
+    --separate-output --noitem \
+    --checklist "Select branches to be deleted and be careful:" \
+    "$HEIGHT" "$WIDTH" "$WHEIGHT" "$@" 3>&1 1>&2 2>&3
+}
+
+ui_yesno() {
+  local prompt=$1
+  whiptail --title "The git xcleaner - delete confirmation" \
+    --yesno "$prompt" "$SMALL_HEIGHT" "$SMALL_WIDTH"
+}
+
+ui_gauge() {
+  local prompt=$1
+  whiptail --title "The git xcleaner - working" \
+    --gauge "$prompt" "$SMALL_HEIGHT" "$WIDTH" 0
+}
+
+ui_textbox() {
+  local file=$1
+  whiptail --title "The git xcleaner - help" --textbox "$file" "$HEIGHT" "$WIDTH"
+}
+
+ui_infobox() {
+  local message=$1
+  whiptail --title "The git xcleaner - help" --infobox "$message" "$HEIGHT" "$WIDTH"
+}
 
 validate_base_branch() {
   [ -n "$1" ] && git rev-parse --verify "${1}^{commit}" &>/dev/null
 }
 
+init_branch_state() {
+  ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  mapfile -t BRANCH_LIST < <(git branch | sed -E 's/^\*?\s*//' | sort)
+  STATE=()
+  local b
+  for b in "${BRANCH_LIST[@]}"; do
+    STATE[$b]=0
+  done
+}
+
+preselect_merged_branches() {
+  local base=$1
+  local b
+  mapfile -t merged_branches < <(git branch --merged "$base" | sed -E 's/^\*?\s*//' | sort)
+  for b in "${merged_branches[@]}"; do
+    [[ "$b" != "$base" && "$b" != "$ACTIVE_BRANCH" ]] && STATE[$b]=1
+  done
+}
+
+preselect_pruned_branches() {
+  local b
+  mapfile -t pruned_branches < <(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{ print $1 }' | sort)
+  for b in "${pruned_branches[@]}"; do
+    [[ "$b" != "$ACTIVE_BRANCH" ]] && STATE[$b]=1
+  done
+}
+
+preselect_message_branches() {
+  local base=$1
+  local b last_commit_msg count
+  for b in "${!STATE[@]}"; do
+    last_commit_msg="$(git log -1 --format=%s "$b")"
+    [[ -z "$last_commit_msg" ]] && continue
+    count=$(git log --format=%s "$base" | grep -Fx "$last_commit_msg" | wc -l)
+    [[ $count -eq 1 && "$b" != "$ACTIVE_BRANCH" ]] && STATE[$b]=1
+  done
+}
+
 delete_action_selection() {
-  # construct the checkbox command
-  CHECKBOX_ARGS=()
+  local CHECKBOX_ARGS=()
+  local b
   for b in "${BRANCH_LIST[@]}"; do
     [[ -z "${STATE[$b]}" ]] && STATE[$b]=0
     CHECKBOX_ARGS+=("$b" "${STATE[$b]}")
   done
 
-  # open the checkbox list
   TO_BE_DELETED=()
-  mapfile -t TO_BE_DELETED < <(whiptail --title "The git xcleaner - branch selection" \
-    --separate-output --noitem \
-    --checklist "Select branches to be deleted and be careful:" \
-    $HEIGHT $WIDTH $WHEIGHT "${CHECKBOX_ARGS[@]}" 3>&1 1>&2 2>&3)
+  mapfile -t TO_BE_DELETED < <(ui_checklist "${CHECKBOX_ARGS[@]}")
 
   CONFIRMED=0
   if [ ${#TO_BE_DELETED[@]} -ne 0 ]; then
-    # explicitly confirm the action
-    if (whiptail --title "The git xcleaner - delete confirmation" \
-      --yesno "Are you sure to delete selected branches (${#TO_BE_DELETED[@]})?" $SMALL_HEIGHT $SMALL_WIDTH); then
+    if ui_yesno "Are you sure to delete selected branches (${#TO_BE_DELETED[@]})?"; then
       CONFIRMED=1
     fi
   fi
 }
 
 delete_action() {
-  if [ $CONFIRMED -eq 1 ]; then
-    PERCENT=$((100 / ${#TO_BE_DELETED[@]}))
-    GAUGE=0
+  if [ "$CONFIRMED" -eq 1 ]; then
+    local PERCENT=$((100 / ${#TO_BE_DELETED[@]}))
+    local GAUGE=0
     {
       for b in "${TO_BE_DELETED[@]}"; do
         "$1" 1>&2
-        echo $GAUGE
+        echo "$GAUGE"
         GAUGE=$((GAUGE + PERCENT))
       done
       echo 100
-    } | whiptail --title "The git xcleaner - working" \
-      --gauge "Deleting selected branches..." $SMALL_HEIGHT $WIDTH 0
+    } | ui_gauge "Deleting selected branches..."
   fi
 }
 
 action_local() {
-  git branch -D "$b" &>>"$HOME/.git-xcleaner.log"
+  git branch -D "$b" &>>"$GIT_XCLEANER_LOG"
 }
 
-while true; do
+action_manual() {
+  init_branch_state
+  delete_action_selection
+  delete_action action_local
+}
 
-  ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+action_merged() {
+  init_branch_state
+  local base
+  base=$(ui_inputbox "Base branch:" "$DEFBRANCH") || return 1
+  validate_base_branch "$base" || return 1
+  preselect_merged_branches "$base"
+  delete_action_selection
+  delete_action action_local
+}
 
-  # hash with preselect state (0/1)
-  mapfile -t BRANCH_LIST < <(git branch | sed -E 's/^\*?\s*//' | sort)
-  declare -A STATE
-  STATE=()
+action_pruned() {
+  init_branch_state
+  preselect_pruned_branches
+  delete_action_selection
+  delete_action action_local
+}
 
-  # load all branch names
-  for b in "${BRANCH_LIST[@]}"; do
-    STATE[$b]=0
+action_messages() {
+  init_branch_state
+  local base
+  base=$(ui_inputbox "Base branch:" "$DEFBRANCH") || return 1
+  validate_base_branch "$base" || return 1
+  preselect_message_branches "$base"
+  delete_action_selection
+  delete_action action_local
+}
+
+action_help() {
+  local help_text=/usr/share/doc/git-xcleaner/git-xcleaner.1.txt
+  if [ -f "$help_text" ]; then
+    ui_textbox "$help_text"
+  else
+    ui_infobox "Help not available - use packaged version"
+  fi
+}
+
+main_loop() {
+  local action
+  while true; do
+    init_branch_state
+    action=$(ui_menu \
+      "Merged" "Delete merged branches (--merged)" \
+      "Messages" "Delete (rebased) branches with the same commit messages" \
+      "Pruned" "Delete pruned branches (deleted tracking branches)" \
+      "Manual" "Interactive manual deletion" \
+      "Exit" "Return to shell" \
+      "Help" "Show help") || action=Help
+
+    case $action in
+    Manual)
+      action_manual
+      ;;
+    Merged)
+      action_merged || continue
+      ;;
+    Pruned)
+      action_pruned
+      ;;
+    Messages)
+      action_messages || continue
+      ;;
+    Exit)
+      return 0
+      ;;
+    *)
+      action_help
+      ;;
+    esac
   done
+}
 
-  ACTION=$(whiptail --title "The git xcleaner - main menu" --cancel-button "Help" --default-item "Exit" \
-    --menu "Select action. This is safe, review on the next screen." $HEIGHT_MENU $WIDTH_MENU $WHEIGHT_MENU \
-    "Merged" "Delete merged branches (--merged)" \
-    "Messages" "Delete (rebased) branches with the same commit messages" \
-    "Pruned" "Delete pruned branches (deleted tracking branches)" \
-    "Manual" "Interactive manual deletion" \
-    "Exit" "Return to shell" \
-    "Help" "Show help" \
-    3>&1 1>&2 2>&3)
-  #"Prune" "Delete stale remote-tracking branches" \
+git_xcleaner_main() {
+  git status >/dev/null || {
+    echo "The current directory does not seem to be valid git repo"
+    exit 1
+  }
+  type whiptail &>/dev/null || {
+    echo "Missing 'whiptail' dependency"
+    exit 1
+  }
+  if git show-ref --quiet refs/heads/master; then
+    DEFBRANCH=master
+  fi
+  main_loop
+}
 
-  case $ACTION in
-  Manual)
-    delete_action_selection
-    delete_action action_local
-    ;;
-
-  Merged)
-    # checkout base branch
-    BASE=$(whiptail --title "The git xcleaner - branch to search" \
-      --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
-    if ! validate_base_branch "$BASE"; then
-      continue
-    fi
-
-    # preselect merged branch names
-    mapfile -t merged_branches < <(git branch --merged "$BASE" | sed -E 's/^\*?\s*//' | sort)
-    for b in "${merged_branches[@]}"; do
-      [ "x$b" != "x$BASE" ] && [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
-    done
-
-    delete_action_selection
-    delete_action action_local
-    ;;
-
-  Pruned)
-    # preselect pruned branches (must do git fetch --prune prior this)
-    mapfile -t pruned_branches < <(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{ print $1 }' | sort)
-    for b in "${pruned_branches[@]}"; do
-      [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
-    done
-
-    delete_action_selection
-    delete_action action_local
-    ;;
-
-  Messages)
-    # checkout base branch
-    BASE=$(whiptail --title "The git xcleaner - branch to search" \
-      --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
-    if ! validate_base_branch "$BASE"; then
-      continue
-    fi
-    git checkout "$BASE" &>/dev/null || exit 1
-
-    # search commit messages and preselect branches
-    for b in "${!STATE[@]}"; do
-      last_commit_msg="$(git log -1 --format=%s "$b")"
-      if [[ -n "$last_commit_msg" ]] && [[ $(git log --format=%s "$BASE" | grep -Fx "$last_commit_msg" | wc -l) -eq 1 ]]; then
-        [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
-      fi
-    done
-
-    delete_action_selection
-    delete_action action_local
-
-    git checkout "$ACTIVE_BRANCH" &>/dev/null || true
-    ;;
-
-  Exit)
-    exit 0
-    ;;
-  *)
-    HELP_TEXT=/usr/share/doc/git-xcleaner/git-xcleaner.1.txt
-    if [ -f $HELP_TEXT ]; then
-      whiptail --title "The git xcleaner - help" --textbox $HELP_TEXT $HEIGHT $WIDTH
-    else
-      whiptail --title "The git xcleaner - help" --infobox "Help not available - use packaged version" $HEIGHT $WIDTH
-    fi
-    ;;
-  esac
-done
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  git_xcleaner_main
+fi
