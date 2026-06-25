@@ -26,20 +26,18 @@ validate_base_branch() {
 
 delete_action_selection() {
   # construct the checkbox command
-  CHECKBOX_CMD=""
-  for b in $BRANCH_LIST; do
+  CHECKBOX_ARGS=()
+  for b in "${BRANCH_LIST[@]}"; do
     [[ -z "${STATE[$b]}" ]] && STATE[$b]=0
-    CHECKBOX_CMD+="$b ${STATE[$b]} "
+    CHECKBOX_ARGS+=("$b" "${STATE[$b]}")
   done
 
   # open the checkbox list
   TO_BE_DELETED=()
-  for b in $(whiptail --title "The git xcleaner - branch selection" \
+  mapfile -t TO_BE_DELETED < <(whiptail --title "The git xcleaner - branch selection" \
     --separate-output --noitem \
     --checklist "Select branches to be deleted and be careful:" \
-    $HEIGHT $WIDTH $WHEIGHT $CHECKBOX_CMD 3>&1 1>&2 2>&3); do
-    TO_BE_DELETED+=($b)
-  done
+    $HEIGHT $WIDTH $WHEIGHT "${CHECKBOX_ARGS[@]}" 3>&1 1>&2 2>&3)
 
   CONFIRMED=0
   if [ ${#TO_BE_DELETED[@]} -ne 0 ]; then
@@ -57,7 +55,7 @@ delete_action() {
     GAUGE=0
     {
       for b in "${TO_BE_DELETED[@]}"; do
-        eval $1 1>&2
+        "$1" 1>&2
         echo $GAUGE
         GAUGE=$((GAUGE + PERCENT))
       done
@@ -68,7 +66,7 @@ delete_action() {
 }
 
 action_local() {
-  git branch -D $b &>>"$HOME/.git-xcleaner.log"
+  git branch -D "$b" &>>"$HOME/.git-xcleaner.log"
 }
 
 action_remote() {
@@ -80,12 +78,12 @@ while true; do
   ACTIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
   # hash with preselect state (0/1)
-  BRANCH_LIST=$(git branch | sed -E 's/^\*?\s*//' | sort)
+  mapfile -t BRANCH_LIST < <(git branch | sed -E 's/^\*?\s*//' | sort)
   declare -A STATE
   STATE=()
 
   # load all branch names
-  for b in $BRANCH_LIST; do
+  for b in "${BRANCH_LIST[@]}"; do
     STATE[$b]=0
   done
 
@@ -115,7 +113,8 @@ while true; do
     fi
 
     # preselect merged branch names
-    for b in $(git branch --merged "$BASE" | sed -E 's/^\*?\s*//' | sort); do
+    mapfile -t merged_branches < <(git branch --merged "$BASE" | sed -E 's/^\*?\s*//' | sort)
+    for b in "${merged_branches[@]}"; do
       [ "x$b" != "x$BASE" ] && [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
     done
 
@@ -125,7 +124,8 @@ while true; do
 
   Pruned)
     # preselect pruned branches (must do git fetch --prune prior this)
-    for b in $(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{ print $1 }' | sort); do
+    mapfile -t pruned_branches < <(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{ print $1 }' | sort)
+    for b in "${pruned_branches[@]}"; do
       [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
     done
 
