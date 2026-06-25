@@ -144,8 +144,8 @@ while true; do
 
     # search commit messages and preselect branches
     for b in "${!STATE[@]}"; do
-      last_commit_msg="$(git log --oneline --format=%f -1 $b)"
-      if [[ "$(git log --oneline --format=%f | grep -c "$last_commit_msg")" -eq 1 ]]; then
+      last_commit_msg="$(git log -1 --format=%s "$b")"
+      if [[ -n "$last_commit_msg" ]] && [[ $(git log --format=%s "$BASE" | grep -Fx "$last_commit_msg" | wc -l) -eq 1 ]]; then
         [ "x$b" != "x$ACTIVE_BRANCH" ] && STATE[$b]=1
       fi
     done
