@@ -152,6 +152,8 @@ while true; do
 
     delete_action_selection
     delete_action action_local
+
+    git checkout "$ACTIVE_BRANCH" &>/dev/null || true
     ;;
 
   Exit)
