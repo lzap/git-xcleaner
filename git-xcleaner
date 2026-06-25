@@ -20,6 +20,10 @@ if git show-ref --quiet refs/heads/master; then
   DEFBRANCH=master
 fi
 
+validate_base_branch() {
+  [ -n "$1" ] && git rev-parse --verify "${1}^{commit}" &>/dev/null
+}
+
 delete_action_selection() {
   # construct the checkbox command
   CHECKBOX_CMD=""
@@ -106,6 +110,9 @@ while true; do
     # checkout base branch
     BASE=$(whiptail --title "The git xcleaner - branch to search" \
       --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
+    if ! validate_base_branch "$BASE"; then
+      continue
+    fi
 
     # preselect merged branch names
     for b in $(git branch --merged "$BASE" | sed -E 's/^\*?\s*//' | sort); do
@@ -130,6 +137,9 @@ while true; do
     # checkout base branch
     BASE=$(whiptail --title "The git xcleaner - branch to search" \
       --inputbox "Base branch:" $HEIGHT $WIDTH $DEFBRANCH 3>&1 1>&2 2>&3)
+    if ! validate_base_branch "$BASE"; then
+      continue
+    fi
     git checkout "$BASE" &>/dev/null || exit 1
 
     # search commit messages and preselect branches
